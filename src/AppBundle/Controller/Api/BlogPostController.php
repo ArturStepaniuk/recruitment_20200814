@@ -11,6 +11,7 @@ use FOS\RestBundle\Controller\FOSRestController;
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -71,7 +72,7 @@ class BlogPostController extends FOSRestController
      *     },
      *     statusCodes  = {
      *          201 = "Returned when OK",
-     *          401 = "Returned when error occurred"
+     *          400 = "Returned when error occurred"
      *     }
      * )
      *
@@ -94,9 +95,64 @@ class BlogPostController extends FOSRestController
 
         $form->submit($data);
 
+        return $this->handleEditForm($form, $request);
+    }
+
+    /**
+     * @ApiDoc(
+     *     section="Blog Post",
+     *     description="Edit post",
+     *     input = {
+     *          "class"     = "\ApiBundle\Form\BlogPostType",
+     *          "paramType"  = "body"
+     *     },
+     *     responseMap = {
+     *          201     = {
+     *              "class" = "AppBundle\Entity\BlogPost"
+     *          }
+     *     },
+     *     statusCodes  = {
+     *          201 = "Returned when OK",
+     *          400 = "Returned when error occurred"
+     *     }
+     * )
+     *
+     * @Security("is_granted('ROLE_ADMIN')")
+     *
+     * @Rest\Put(
+     *     name = "api.blog_post.edit",
+     *     path = "/blog-post/{blogPostId}/edit",
+     *     options = {"expose"=true}
+     * )
+     * @param Request $request
+     * @param BlogPost $blogPost
+     * @return Response
+     */
+    public function editPostAction(Request $request, $blogPostId)
+    {
+
+        //$blogPost
+        $blogPost = $this->getDoctrine()
+            ->getRepository(BlogPost::class)->find($blogPostId);
+
+        $form = $this->createForm(BlogPostType::class,$blogPost);
+        $data = json_decode($request->getContent(),true);
+
+        $form->submit($data);
+
+        return $this->handleEditForm($form, $request);
+    }
+
+    /**
+     * @param FormInterface $form
+     * @param Request|null $request
+     * @return Response
+     */
+    protected function handleEditForm(FormInterface $form, Request $request = null)
+    {
         if($form->isSubmitted()&&$form->isValid()){
 
-
+            $blogPost = $form->getData();
             $em=$this->getDoctrine()->getManager();
             $em->persist($blogPost);
             $em->flush();
@@ -107,4 +163,5 @@ class BlogPostController extends FOSRestController
         }
         return $this->handleView($this->view($form, Response::HTTP_BAD_REQUEST));
     }
+
 }

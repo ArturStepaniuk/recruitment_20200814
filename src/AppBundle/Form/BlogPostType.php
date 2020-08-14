@@ -35,7 +35,8 @@ class BlogPostType extends AbstractType
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults(array(
-            'data_class' => BlogPost::class
+            'data_class' => BlogPost::class,
+            'csrf_protection'=>false
         ));
     }
 
