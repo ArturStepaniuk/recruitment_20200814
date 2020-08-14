@@ -4,6 +4,7 @@ namespace AppBundle\Controller\Api;
 
 use AppBundle\Entity\BlogPost;
 use AppBundle\Form\BlogPostType;
+use AppBundle\Manager\BlogPost\BlogPostManager;
 use FOS\RestBundle\Context\Context;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\Controller\Annotations\Route;
@@ -43,16 +44,22 @@ class BlogPostController extends FOSRestController
      *     section="Blog Post",
      *     description="Publish post to specified target"
      * )
+     * @Security("is_granted('ROLE_ADMIN')")
      * @Route(name="api.blog_post.publish", path="/blog-post/{post}/{target}")
      * @Method("POST")
      * @param BlogPost $post
      * @param $target
      *
+     * @param BlogPostManager $blogPostManager
      * @return \FOS\RestBundle\View\View
      */
-    public function publishPostAction(BlogPost $post, $target)
+    public function publishPostAction(BlogPost $post, $target,BlogPostManager $blogPostManager)
     {
-        // todo: implement this
+        $blogPost = $this->getDoctrine()
+            ->getRepository(BlogPost::class)
+            ->find($post);
+
+
 
         return $this->view();
     }
@@ -84,18 +91,20 @@ class BlogPostController extends FOSRestController
      *     options = {"expose"=true}
      * )
      * @param Request $request
+     * @param BlogPostManager $blogPostManager
      * @return Response
+     * @throws \Exception
      */
-    public function createPostAction(Request $request)
+    public function createPostAction(Request $request, BlogPostManager $blogPostManager)
     {
 
-        $blogPost = new BlogPost();
+        $blogPost = $blogPostManager->createNewInstance();
         $form = $this->createForm(BlogPostType::class,$blogPost);
         $data = json_decode($request->getContent(),true);
 
         $form->submit($data);
 
-        return $this->handleEditForm($form, $request);
+        return $this->handleEditForm($form, $blogPostManager, $request);
     }
 
     /**
@@ -121,45 +130,47 @@ class BlogPostController extends FOSRestController
      *
      * @Rest\Put(
      *     name = "api.blog_post.edit",
-     *     path = "/blog-post/{blogPostId}/edit",
+     *     path = "/blog-post/{post}/edit",
      *     options = {"expose"=true}
      * )
      * @param Request $request
-     * @param BlogPost $blogPost
+     * @param BlogPost $post
+     * @param BlogPostManager $blogPostManager
      * @return Response
+     * @throws \Exception
      */
-    public function editPostAction(Request $request, $blogPostId)
+    public function editPostAction(Request $request, BlogPost $post, BlogPostManager $blogPostManager)
     {
 
-        //$blogPost
         $blogPost = $this->getDoctrine()
-            ->getRepository(BlogPost::class)->find($blogPostId);
+            ->getRepository(BlogPost::class)
+            ->find($post);
 
         $form = $this->createForm(BlogPostType::class,$blogPost);
         $data = json_decode($request->getContent(),true);
 
         $form->submit($data);
 
-        return $this->handleEditForm($form, $request);
+        return $this->handleEditForm($form, $blogPostManager, $request);
     }
 
     /**
      * @param FormInterface $form
      * @param Request|null $request
      * @return Response
+     * @throws \Exception
      */
-    protected function handleEditForm(FormInterface $form, Request $request = null)
+    protected function handleEditForm(FormInterface $form, BlogPostManager $blogPostManager, Request $request = null)
     {
         if($form->isSubmitted()&&$form->isValid()){
 
-            $blogPost = $form->getData();
-            $em=$this->getDoctrine()->getManager();
-            $em->persist($blogPost);
-            $em->flush();
+            try {
+                $blogPost = $blogPostManager->createBlogPostByForm($form);
+                return $this->handleView($this->view($blogPost, Response::HTTP_CREATED));
+            } catch (\Exception $e) {
+                return $this->handleView($this->view($e, Response::HTTP_BAD_REQUEST));
+            }
 
-            //$view = $this->view($subcomment, Response::HTTP_OK);
-
-            return $this->handleView($this->view($blogPost, Response::HTTP_CREATED));
         }
         return $this->handleView($this->view($form, Response::HTTP_BAD_REQUEST));
     }

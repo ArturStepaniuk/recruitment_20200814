@@ -2,6 +2,7 @@
 
 namespace AppBundle\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -40,6 +41,19 @@ class BlogPost
      * @ORM\Column(type="json_array")
      */
     private $tags = [];
+
+    /**
+     * @var ArrayCollection
+     *
+     * @ORM\OneToMany(targetEntity="BlogPostSocialTarget", mappedBy="blogPost", cascade={"all"})
+     */
+    protected $socialTargets;
+
+
+    public function __construct()
+    {
+        $this->socialTargets = new ArrayCollection();
+    }
 
     /**
      * @return int
@@ -95,5 +109,37 @@ class BlogPost
     public function setTags($tags)
     {
         $this->tags = $tags;
+    }
+
+    /**
+     * Add socialTarget
+     *
+     * @param BlogPostSocialTarget $socialTarget
+     * @return BlogPost
+     */
+    public function addQuestion(BlogPostSocialTarget $socialTarget)
+    {
+        $this->socialTargets->add($socialTarget);
+        $socialTarget->setBlogPost($this);
+
+        return $this;
+    }
+
+    /**
+     * Remove socialTarget
+     *
+     * @param BlogPostSocialTarget $socialTarget
+     */
+    public function removeQuestion(BlogPostSocialTarget $socialTarget)
+    {
+        $this->socialTargets->removeElement($socialTarget);
+    }
+
+    /**
+     * @return ArrayCollection|BlogPostSocialTarget[]
+     */
+    public function getSocialTargets()
+    {
+        return $this->socialTargets;
     }
 }
