@@ -3,6 +3,8 @@
 namespace AppBundle\Controller\Api;
 
 use AppBundle\Entity\BlogPost;
+use AppBundle\Entity\BlogPostSocialTarget;
+use AppBundle\Form\BlogPostTargetType;
 use AppBundle\Form\BlogPostType;
 use AppBundle\Manager\BlogPost\BlogPostManager;
 use FOS\RestBundle\Context\Context;
@@ -51,17 +53,39 @@ class BlogPostController extends FOSRestController
      * @param $target
      *
      * @param BlogPostManager $blogPostManager
-     * @return \FOS\RestBundle\View\View
+     * @return Response
      */
     public function publishPostAction(BlogPost $post, $target,BlogPostManager $blogPostManager)
     {
+
+        try {
+            $blogPost = $this->getDoctrine()
+                ->getRepository(BlogPost::class)
+                ->find($post);
+
+            $blogPostManager->setSocialTargetBlogPost($blogPost, $target);
+
+            return $this->handleView($this->view($blogPost, Response::HTTP_CREATED));
+        } catch (\Exception $e) {
+            return $this->handleView($this->view($e->getMessage(), Response::HTTP_BAD_REQUEST));
+        }
+
+        /*
         $blogPost = $this->getDoctrine()
-            ->getRepository(BlogPost::class)
-            ->find($post);
+                ->getRepository(BlogPost::class)
+                ->find($post);
+        $postSocialTarget = new BlogPostSocialTarget();
+        $postSocialTarget->setBlogPost($blogPost);
 
+        $form = $this->createForm(BlogPostTargetType::class,$postSocialTarget);
+        $data = [
+            'target'=>$target
+        ];
 
+        $form->submit($data);
 
-        return $this->view();
+        return $this->handleTargetForm($form, $blogPostManager);
+        */
     }
 
     /**
@@ -122,7 +146,8 @@ class BlogPostController extends FOSRestController
      *     },
      *     statusCodes  = {
      *          201 = "Returned when OK",
-     *          400 = "Returned when error occurred"
+     *          400 = "Returned when error occurred",
+     *          404 = "Returned when BlogPost Not Found"
      *     }
      * )
      *
@@ -156,14 +181,13 @@ class BlogPostController extends FOSRestController
 
     /**
      * @param FormInterface $form
+     * @param BlogPostManager $blogPostManager
      * @param Request|null $request
      * @return Response
-     * @throws \Exception
      */
     protected function handleEditForm(FormInterface $form, BlogPostManager $blogPostManager, Request $request = null)
     {
         if($form->isSubmitted()&&$form->isValid()){
-
             try {
                 $blogPost = $blogPostManager->createBlogPostByForm($form);
                 return $this->handleView($this->view($blogPost, Response::HTTP_CREATED));
@@ -174,5 +198,27 @@ class BlogPostController extends FOSRestController
         }
         return $this->handleView($this->view($form, Response::HTTP_BAD_REQUEST));
     }
+
+    /**
+     * @param FormInterface $form
+     * @param BlogPostManager $blogPostManager
+     * @return Response
+     */
+    protected function handleTargetForm(FormInterface $form, BlogPostManager $blogPostManager)
+    {
+
+        if($form->isSubmitted()&&$form->isValid()){
+
+            try {
+                $blogPost = $blogPostManager->setSocialTargetBlogPostByForm($form);
+                return $this->handleView($this->view($blogPost, Response::HTTP_CREATED));
+            } catch (\Exception $e) {
+                return $this->handleView($this->view($e->getMessage(), Response::HTTP_BAD_REQUEST));
+            }
+
+        }
+        return $this->handleView($this->view($form, Response::HTTP_BAD_REQUEST));
+    }
+
 
 }

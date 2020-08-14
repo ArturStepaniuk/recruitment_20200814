@@ -1,5 +1,4 @@
 <?php
-//https://www.maxpou.fr/dealing-with-enum-symfony-doctrine
 
 namespace AppBundle\Entity\Enum;
 
@@ -35,6 +34,14 @@ abstract class BlogPostSocialTargetEnum
         return [
             self::facebook,
             self::twitter
+        ];
+    }
+
+    public static function getTargetGlossary()
+    {
+        return [
+            self::facebook  => self::facebook,
+            self::twitter => self::twitter
         ];
     }
 }

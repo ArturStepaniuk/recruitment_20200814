@@ -1,6 +1,5 @@
 <?php
 
-
 namespace AppBundle\Entity;
 
 use AppBundle\Entity\Enum\BlogPostSocialTargetEnum;
@@ -28,6 +27,7 @@ class BlogPostSocialTarget
      * @var BlogPost
      *
      * @ORM\ManyToOne(targetEntity="BlogPost", inversedBy="socialTargets")
+     * @ORM\JoinColumn(nullable=false)
      */
     protected $blogPost;
 
@@ -35,6 +35,7 @@ class BlogPostSocialTarget
      * @var string
      * @ORM\Column(type="text")
      * @Assert\NotBlank()
+     * @Assert\Choice(callback={"AppBundle\Entity\Enum\BlogPostSocialTargetEnum", "getAvailableSocialTarget"})
      */
     protected $target;
 
@@ -77,9 +78,8 @@ class BlogPostSocialTarget
 
     public function setTarget($target)
     {
-        //$this->status = $status;
         if (!in_array($target, BlogPostSocialTargetEnum::getAvailableSocialTarget())) {
-            throw new TargetNotExistsException("Invalid tag");
+            throw new TargetNotExistsException(sprintf("Invalid social target %s",$target));
         }
 
         $this->target = $target;

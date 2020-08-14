@@ -45,7 +45,7 @@ class BlogPost
     /**
      * @var ArrayCollection
      *
-     * @ORM\OneToMany(targetEntity="BlogPostSocialTarget", mappedBy="blogPost", cascade={"all"})
+     * @ORM\OneToMany(targetEntity="BlogPostSocialTarget", mappedBy="blogPost", cascade={"persist", "remove"})
      */
     protected $socialTargets;
 
@@ -117,10 +117,15 @@ class BlogPost
      * @param BlogPostSocialTarget $socialTarget
      * @return BlogPost
      */
-    public function addQuestion(BlogPostSocialTarget $socialTarget)
+    public function addSocialTarget(BlogPostSocialTarget $socialTarget)
     {
-        $this->socialTargets->add($socialTarget);
-        $socialTarget->setBlogPost($this);
+        if (!$this->socialTargets->contains($socialTarget)) {
+            $this->socialTargets[] = $socialTarget;
+            $socialTarget->setBlogPost($this);
+        }
+
+//        $this->socialTargets->add($socialTarget);
+//        $socialTarget->setBlogPost($this);
 
         return $this;
     }
@@ -130,9 +135,11 @@ class BlogPost
      *
      * @param BlogPostSocialTarget $socialTarget
      */
-    public function removeQuestion(BlogPostSocialTarget $socialTarget)
+    public function removeSocialTarget(BlogPostSocialTarget $socialTarget)
     {
-        $this->socialTargets->removeElement($socialTarget);
+        if ($this->socialTargets->contains($socialTarget)) {
+            $this->socialTargets->removeElement($socialTarget);
+        }
     }
 
     /**

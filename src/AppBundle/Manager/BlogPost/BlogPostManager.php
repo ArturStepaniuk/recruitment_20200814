@@ -5,6 +5,8 @@ namespace AppBundle\Manager\BlogPost;
 
 
 use AppBundle\Entity\BlogPost;
+use AppBundle\Entity\BlogPostSocialTarget;
+use AppBundle\Exception\TargetNotExistsException;
 use Doctrine\ORM\EntityManager;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Form\FormInterface;
@@ -56,5 +58,57 @@ class BlogPostManager
 
         return $blogPost;
     }
+
+
+    /**
+     * @param FormInterface $form
+     * @throws \Exception
+     */
+    public function setSocialTargetBlogPostByForm(FormInterface $form)
+    {
+        $this->em->beginTransaction();
+        try {
+            $postSocialTarget = $form->getData();
+
+            $this->em->persist($postSocialTarget);
+            $this->em->flush();
+            $this->em->commit();
+        } catch (\Exception $e) {
+            $this->em->rollback();
+            throw $e;
+        }
+
+        return $postSocialTarget;
+    }
+
+    /**
+     * @param BlogPost $blogPost
+     * @param $target
+     * @return BlogPost
+     * @throws \Exception
+     */
+    public function setSocialTargetBlogPost(BlogPost $blogPost, $target)
+    {
+        $this->em->beginTransaction();
+        try {
+
+            $postSocialTarget = new BlogPostSocialTarget();
+            $postSocialTarget->setTarget($target);
+            $postSocialTarget->setBlogPost($blogPost);
+
+            $this->em->persist($postSocialTarget);
+            $this->em->flush();
+            $this->em->commit();
+
+        } catch (\Exception $e) {
+            $this->em->rollback();
+            throw $e;
+        }
+
+        // todo: implement EventListener, service rtc to social publish
+
+        return $blogPost;
+    }
+
 
 }
