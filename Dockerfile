@@ -1,5 +1,5 @@
 FROM php:7.1-fpm
-RUN apt-get update && buildDeps="libpq-dev libzip-dev libjpeg62-turbo libjpeg-dev libpng12-dev" \
+RUN apt-get update && buildDeps="libpq-dev libzip-dev libjpeg62-turbo libjpeg-dev libpng-dev" \
     && apt-get install -y $buildDeps git nano wget cron libxrender1 libfontconfig1 libxext6 libicu-dev --no-install-recommends \
     && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*z
 RUN docker-php-ext-configure gd --with-jpeg-dir=/usr/lib/x86_64-linux-gnu --with-png-dir=/usr/lib/x86_64-linux-gnu
