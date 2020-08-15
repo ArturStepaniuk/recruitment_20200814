@@ -33,3 +33,10 @@ services:
     # AppBundle\Service\ExampleService:
     #     arguments:
     #         $someArgument: 'some_value'
+    app.blogpost.social_target.listener:
+        class: AppBundle\EventListener\Listener\BlogPost\SocialTargetListener
+        arguments:
+            - "@doctrine.orm.default_entity_manager"
+            - '%app_social_settings%'
+        tags:
+            - { name: 'kernel.event_listener', event: 'blogpost.social.target', method: 'publishPost' }

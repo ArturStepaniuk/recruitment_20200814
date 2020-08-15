@@ -4,7 +4,7 @@
 namespace AppBundle\Service\Social;
 
 
-abstract class Post
+abstract class PostBuilder
 {
     /**
      * @var object[]

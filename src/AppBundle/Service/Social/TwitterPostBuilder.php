@@ -4,7 +4,7 @@
 namespace AppBundle\Service\Social;
 
 
-class TwitterPost extends Post
+class TwitterPostBuilder extends PostBuilder
 {
 
 }

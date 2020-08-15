@@ -20,7 +20,7 @@ class PublishFacebookPost implements Social
 
     public function createSocialPost()
     {
-        $this->facebookPost = new FacebookPost();
+        $this->facebookPost = new FacebookPostBuilder();
     }
 
     public function getSocialPost()

@@ -20,7 +20,7 @@ class PublishTwitterPost implements Social
 
     public function createSocialPost()
     {
-        $this->twitterPost = new TwitterPost();
+        $this->twitterPost = new TwitterPostBuilder();
     }
 
     public function getSocialPost()

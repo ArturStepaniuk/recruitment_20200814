@@ -4,7 +4,7 @@
 namespace AppBundle\Service\Social;
 
 
-class FacebookPost extends Post
+class FacebookPostBuilder extends PostBuilder
 {
 
 }

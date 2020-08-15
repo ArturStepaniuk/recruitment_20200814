@@ -97,21 +97,23 @@ class BlogPostManager
 
             $postSocialTarget = new BlogPostSocialTarget();
             $postSocialTarget->setTarget($target);
-            $postSocialTarget->setBlogPost($blogPost);
 
-            $this->em->persist($postSocialTarget);
+            $blogPost->addSocialTarget($postSocialTarget);
+
+            $this->em->persist($blogPost);
             $this->em->flush();
             $this->em->commit();
 
-            $this->eventDispatcher->dispatch(
-                BlogPostSocialTargetEvent::NAME,
-                new BlogPostSocialTargetEvent($blogPost)
-            );
 
         } catch (\Exception $e) {
             $this->em->rollback();
             throw $e;
         }
+
+        $this->eventDispatcher->dispatch(
+            BlogPostSocialTargetEvent::NAME,
+            new BlogPostSocialTargetEvent($blogPost)
+        );
 
         return $blogPost;
     }

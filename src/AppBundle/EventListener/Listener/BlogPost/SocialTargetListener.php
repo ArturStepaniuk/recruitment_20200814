@@ -9,11 +9,13 @@ use AppBundle\EventListener\Event\BlogPostSocialTargetEvent;
 use AppBundle\Exception\TargetNotExistsException;
 use AppBundle\Service\Social\BlogPostSocial;
 use AppBundle\Service\Social\FacebookPost;
+use AppBundle\Service\Social\PublishFacebookPost;
+use AppBundle\Service\Social\PublishTwitterPost;
 use AppBundle\Service\Social\TwitterPost;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\EventDispatcher\Event;
 
-class SetSocialTargetListener
+class SocialTargetListener
 {
     /** @var  EntityManagerInterface */
     protected $em;
@@ -39,6 +41,7 @@ class SetSocialTargetListener
      */
     public function publishPost(Event $event)
     {
+
         if (!($event instanceof BlogPostSocialTargetEvent)) {
             throw new \UnexpectedValueException(sprintf(
                 'Expected %s, got %s',
@@ -49,17 +52,16 @@ class SetSocialTargetListener
 
         $blogPost = $event->getBlogPost();
         $socialTargets = $blogPost->getSocialTargets();
-        $lastTarget = end($socialTargets);
+        $lastTargetKey = end($socialTargets);
 
-        dump($lastTarget);
-        die();
+        $lastTarget = $socialTargets[$lastTargetKey];
 
         switch (true){
-            case ($lastTarget === BlogPostSocialTargetEnum::facebook):
-                $socialPost = new FacebookPost();
+            case ($lastTarget->getTarget() === BlogPostSocialTargetEnum::facebook):
+                $socialPost = new PublishFacebookPost();
                 break;
-            case ($lastTarget === BlogPostSocialTargetEnum::twitter):
-                $socialPost = new TwitterPost();
+            case ($lastTarget->getTarget() === BlogPostSocialTargetEnum::twitter):
+                $socialPost = new PublishTwitterPost();
                 break;
             default:
                 throw new TargetNotExistsException(sprintf("Invalid social target %s",$lastTarget));

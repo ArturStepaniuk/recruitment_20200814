@@ -29,6 +29,8 @@ class BlogPostController extends FOSRestController
      *     description="Return complete list of blog posts"
      * )
      *
+     * @Security("is_granted('ROLE_ADMIN')")
+     *
      * @Route(name="api.blog_post.list", path="/blog-post")
      * @Method("GET")
      *
@@ -46,7 +48,7 @@ class BlogPostController extends FOSRestController
      *     section="Blog Post",
      *     description="Publish post to specified target"
      * )
-     * @Security("is_granted('ROLE_ADMIN')")
+     * @Security("is_granted('ROLE_ADMIN') or is_granted('ROLE_USER')")
      * @Route(name="api.blog_post.publish", path="/blog-post/{post}/{target}")
      * @Method("POST")
      * @param BlogPost $post
